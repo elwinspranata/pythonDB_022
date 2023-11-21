@@ -1,0 +1,77 @@
+import tkinter as tk
+import sqlite3
+
+# Fungsi untuk Hasil Prediksi
+def hasil_prediksi():
+    # Mengumpulkan nilai dari entri
+    nilai_pelajaran = [float(entry.get()) for entry in input_nilai]
+
+    # Menentukan prodi yang diprediksi
+    max_index = nilai_pelajaran.index(max(nilai_pelajaran))
+    if max_index == 0:
+        prediksi_fakultas = "Kedokteran"
+    elif max_index == 1:
+        prediksi_fakultas = "Teknik"
+    else:
+        prediksi_fakultas = "Bahasa"
+
+    # Menampilkan hasil prediksi
+    luaran_hasil.config(text=f"Prodi yang direkomendasikan: {prediksi_fakultas}")
+
+    # Menyimpan data ke SQLite
+    nama_siswa = entry_nama.get()
+    conn = sqlite3.connect('nilai_elwin.db')
+    cursor = conn.cursor()
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS nilai_siswa (
+            id INTEGER PRIMARY KEY,
+            nama_siswa TEXT,
+            biologi REAL,
+            fisika REAL,
+            inggris REAL,
+            prediksi_fakultas TEXT
+        )
+    ''')
+    cursor.execute('''
+        INSERT INTO nilai_siswa (nama_siswa, biologi, fisika, inggris, prediksi_fakultas)
+        VALUES (?, ?, ?, ?, ?)
+    ''', (nama_siswa, nilai_pelajaran[0], nilai_pelajaran[1], nilai_pelajaran[2], prediksi_fakultas))
+    conn.commit()
+    conn.close()
+
+# Membuat jendela utama
+root = tk.Tk()
+root.title("Aplikasi Prediksi Prodi Pilihan")
+root.geometry('500x500')
+root.resizable(False, False)
+root.config(background='white')
+
+judul = tk.Label(root, text="Aplikasi Prediksi Prodi Pilihan", font=("Times New Roman", 16))
+judul.grid(row=0, column=0, columnspan=4, pady=10)
+
+# Membuat input nilai mata pelajaran dan nama siswa
+input_nilai = []
+for i, mata_pelajaran in enumerate(["Biologi", "Fisika", "Inggris"]):
+    label = tk.Label(root, text="Nilai " + mata_pelajaran)
+    label.grid(row=i + 1, column=0, pady=5, padx=10)
+
+    entry = tk.Entry(root)
+    entry.grid(row=i + 1, column=1, pady=5, padx=10)
+    input_nilai.append(entry)
+
+# Entry untuk nama siswa
+label_nama = tk.Label(root, text="Nama Siswa")
+label_nama.grid(row=4, column=0, pady=5, padx=10)
+entry_nama = tk.Entry(root)
+entry_nama.grid(row=4, column=1, pady=5, padx=10)
+
+# Membuat button hasil prediksi
+hasil_button = tk.Button(root, text="Hasil Prediksi", command=hasil_prediksi)
+hasil_button.grid(row=5, column=0, columnspan=2, pady=10)
+
+# Membuat label luaran hasil prediksi
+luaran_hasil = tk.Label(root, text="", font=("Times New Roman", 14))
+luaran_hasil.grid(row=6, column=0, columnspan=4, pady=10)
+
+# Menampilkan GUI
+root.mainloop()
